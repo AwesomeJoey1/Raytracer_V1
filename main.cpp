@@ -3,7 +3,8 @@
 #include "Ray.h"
 #include "Image.h"
 
-bool hitSphere(const glm::vec3 & center, float radius, const Ray &ray)
+
+float hitSphere(const glm::vec3 & center, float radius, const Ray &ray)
 {
     glm::vec3 oc = ray.origin() - center;
     float a = glm::dot(ray.direction(), ray.direction());
@@ -11,17 +12,26 @@ bool hitSphere(const glm::vec3 & center, float radius, const Ray &ray)
     float c = glm::dot(oc, oc) - radius*radius;
     float discriminant = b*b - 4*a*c;
 
-    return discriminant > 0;
+    if (discriminant < 0)
+    {
+        return -1.0f;
+    } else{
+        return (-b - glm::sqrt(discriminant)) / (2.0f * a);
+    }
 }
 
 // background color that is the linear interpolation depending on the y value of the direction of the ray
 glm::vec3 color(Ray ray)
 {
-    if (hitSphere(glm::vec3(0,0,-1), 0.5, ray))
-        return glm::vec3(1.0, 0.0, 0.0);
+    float t = hitSphere(glm::vec3(0,0,-1), 0.5, ray);
+    if (t > 0.0f)
+    {
+        glm::vec3 normal = glm::normalize(ray.pointAtParam(t) - glm::vec3(0,0,-1));
+        return 0.5f*glm::vec3(normal.x + 1, normal.y + 1, normal.z + 1);
+    }
 
     glm::vec3 unit_direction = glm::normalize(ray.direction());
-    float t = 0.5f * (unit_direction.y + 1.0f);
+    t = 0.5f * (unit_direction.y + 1.0f);
     return (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
 }
 
