@@ -45,7 +45,7 @@ int main() {
     glm::vec3 horizontal(4.0, 0.0, 0.0);
     glm::vec3 vertical(0.0, 2.0, 0.0);
     glm::vec3 origin(0.0, 0.0, 0.0);
-    for (int j = pic_y-1; j >= 0; j--) {
+    for (int j = 0; j < pic_y; j++) {
         for (int i = 0; i < pic_x; i++) {
             float u = float(i) / float(pic_x);
             float v = float(j) / float(pic_y);
