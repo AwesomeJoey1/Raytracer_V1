@@ -13,6 +13,7 @@ Image::Image(int width, int height)
     _imageBuffer.resize(width*height*3, 0.0f);
 }
 
+// set pixel at coordinate (x,y) with specified color
 void Image::setPixel(int x, int y, glm::vec3 color)
 {
     int index = y * _width * 3 + x * 3;
@@ -21,6 +22,7 @@ void Image::setPixel(int x, int y, glm::vec3 color)
     _imageBuffer[++index] = color.b;
 }
 
+// save image as png and jpg.
 void Image::save()
 {
     stbi_flip_vertically_on_write(true);

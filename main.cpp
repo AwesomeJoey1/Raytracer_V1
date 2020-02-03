@@ -1,57 +1,53 @@
 #include <iostream>
+#include "float.h"
 
-#include "Ray.h"
+#include "HittableList.h"
+#include "Sphere.h"
 #include "Image.h"
-
-
-float hitSphere(const glm::vec3 & center, float radius, const Ray &ray)
-{
-    glm::vec3 oc = ray.origin() - center;
-    float a = glm::dot(ray.direction(), ray.direction());
-    float b = 2.0f * glm::dot(ray.direction(), oc);
-    float c = glm::dot(oc, oc) - radius*radius;
-    float discriminant = b*b - 4*a*c;
-
-    if (discriminant < 0)
-    {
-        return -1.0f;
-    } else{
-        return (-b - glm::sqrt(discriminant)) / (2.0f * a);
-    }
-}
+#include "Camera.h"
+#include "Random.h"
 
 // background color that is the linear interpolation depending on the y value of the direction of the ray
-glm::vec3 color(Ray ray)
+glm::vec3 color(Ray &ray, Hittable *world)
 {
-    float t = hitSphere(glm::vec3(0,0,-1), 0.5, ray);
-    if (t > 0.0f)
+    hitRecord rec;
+    if (world->hit(ray, 0.001f, FLT_MAX, rec))
     {
-        glm::vec3 normal = glm::normalize(ray.pointAtParam(t) - glm::vec3(0,0,-1));
-        return 0.5f*glm::vec3(normal.x + 1, normal.y + 1, normal.z + 1);
+        return 0.5f*glm::vec3(rec.n.x + 1, rec.n.y + 1, rec.n.z + 1);
+    } else
+    {
+        glm::vec3 unit_direction = glm::normalize(ray.direction());
+        float t = 0.5f * (unit_direction.y + 1.0f);
+        return (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
     }
-
-    glm::vec3 unit_direction = glm::normalize(ray.direction());
-    t = 0.5f * (unit_direction.y + 1.0f);
-    return (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
 }
 
 int main() {
     const int pic_x = 2000;
     const int pic_y = 1000;
+    const int pic_s = 100;
 
     Image image(pic_x, pic_y);
 
-    glm::vec3 lower_left(-2.0, -1.0, -1.0);
-    glm::vec3 horizontal(4.0, 0.0, 0.0);
-    glm::vec3 vertical(0.0, 2.0, 0.0);
-    glm::vec3 origin(0.0, 0.0, 0.0);
+    Hittable *list[2];
+    list[0] = new Sphere(glm::vec3(0, 0, -1), 0.5);
+    list[1] = new Sphere(glm::vec3(0, -100.5, -1), 100);
+    Hittable *world = new HittableList(list, 2);
+    Camera camera;
+
     for (int j = 0; j < pic_y; j++) {
         for (int i = 0; i < pic_x; i++) {
-            float u = float(i) / float(pic_x);
-            float v = float(j) / float(pic_y);
+            glm::vec3 col(0,0,0);
+            // Anti-aliasing: multiple rays per pixel, then average
+            for(int s = 0; s < pic_s; s++) {
+                float u = float(i + randomDoubleC()) / float(pic_x);
+                float v = float(j + randomDoubleC()) / float(pic_y);
 
-            Ray ray(origin, lower_left + u*horizontal + v*vertical);
-            glm::vec3 col = color(ray);
+                Ray ray = camera.getRay(u,v);
+                col += color(ray, world);
+            }
+            col /= pic_s;
+
 
             int ir = int(255.99 * col.r);
             int ig = int(255.99 * col.g);
