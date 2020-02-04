@@ -50,16 +50,18 @@ private:
 class Metal : public Material
 {
 public:
-    Metal(const glm::vec3 a) : _albedo(a) {}
+    Metal(const glm::vec3 a, float f) : _albedo(a) { if(f < 1.0f) _fuzziness = f; else _fuzziness = 1.0f; }
 
     virtual bool scatter(const Ray &rayIn, const hitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const {
         glm::vec3 reflected = glm::reflect(glm::normalize(rayIn.direction()), rec.n);
-        scattered = Ray(rec.p, reflected);
+        // Fuzziness as pertubation of the material. 0 = no pertubation
+        scattered = Ray(rec.p, reflected + _fuzziness*randomInUnitSphere());
         attenuation = _albedo;
         return (dot(scattered.direction(), rec.n) > 0);
     }
 
 private:
     glm::vec3 _albedo;
+    float _fuzziness;
 
 };
