@@ -1,23 +1,12 @@
 #include <iostream>
 #include "float.h"
-#include <glm/glm/gtx/norm.hpp>
 
-#include "HittableList.h"
-#include "Sphere.h"
-#include "Image.h"
 #include "Camera.h"
+#include "HittableList.h"
+#include "Image.h"
+#include "Material.h"
 #include "Random.h"
-
-// Searches a point in the unit sphere, by rejecting all points which squared length of the origin vector exceeds 1.0
-glm::vec3 randomInUnitSphere()
-{
-    glm::vec3 p;
-    do {
-        p = glm::vec3(randomDoubleCPP(), randomDoubleCPP(), randomDoubleCPP());
-        p = 2.0f * p - glm::vec3(1,1,1);
-    } while(glm::length2(p) >= 1.0f);
-    return p;
-}
+#include "Sphere.h"
 
 // Calculates pixel color. Background is a color gradient from skyblue to white.
 glm::vec3 color(const Ray &ray, Hittable *world, int depth)
@@ -25,10 +14,11 @@ glm::vec3 color(const Ray &ray, Hittable *world, int depth)
     hitRecord rec;
     if (world->hit(ray, 0.001f, FLT_MAX, rec))
     {
-        if (depth < 5000)
+        Ray scattered;
+        glm::vec3 attenuation;
+        if (depth < 50 && rec.materialPtr->scatter(ray, rec, attenuation, scattered))
         {
-        glm::vec3 target = rec.p + rec.n + randomInUnitSphere();
-        return 0.5f*color(Ray(rec.p, target - rec.p), world, depth+1);
+            return attenuation * color(scattered, world, depth+1);
         }
         else {
             return glm::vec3(0,0,0);
@@ -48,10 +38,12 @@ int main() {
 
     Image image(pic_x, pic_y);
 
-    Hittable *list[2];
-    list[0] = new Sphere(glm::vec3(0, 0, -1), 0.5);
-    list[1] = new Sphere(glm::vec3(0, -100.5, -1), 100);
-    Hittable *world = new HittableList(list, 2);
+    Hittable *list[4];
+    list[0] = new Sphere(glm::vec3(0, 0, -1), 0.5, new Lambertian(glm::vec3(0.8, 0.3, 0.3)));
+    list[1] = new Sphere(glm::vec3(0, -100.5, -1), 100, new Lambertian(glm::vec3(0.8, 0.8, 0.0)));
+    list[2] = new Sphere(glm::vec3(1, 0, -1), 0.5, new Metal(glm::vec3(0.8, 0.6, 0.2)));
+    list[3] = new Sphere(glm::vec3(-1,0,-1), 0.5, new Metal(glm::vec3(0.8, 0.8, 0.8)));
+    Hittable *world = new HittableList(list, 4);
     Camera camera;
 
     for (int j = 0; j < pic_y; j++) {
