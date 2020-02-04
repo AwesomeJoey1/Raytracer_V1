@@ -42,8 +42,8 @@ int main() {
     list[0] = new Sphere(glm::vec3(0, 0, -1), 0.5, new Lambertian(glm::vec3(0.1, 0.2, 0.5)));
     list[1] = new Sphere(glm::vec3(0, -100.5, -1), 100, new Lambertian(glm::vec3(0.8, 0.8, 0.0)));
     list[2] = new Sphere(glm::vec3(1, 0, -1), 0.5, new Metal(glm::vec3(0.8, 0.6, 0.2), 0.0));
-    //list[3] = new Sphere(glm::vec3(-1,0,-1), 0.5, new Metal(glm::vec3(0.8, 0.8, 0.8), 0.3));
-    list[3] = new Sphere(glm::vec3(-1,0,-1), 0.5, new Dielectric(1.5));
+    //list[3] = new Sphere(glm::vec3(-1,0,-1), 0.5, new Dielectric(1.5));
+    list[3] = new Sphere(glm::vec3(-1,0,-1), 0.5, new Dielectric(-0.45));
     Hittable *world = new HittableList(list, 4);
     Camera camera;
 

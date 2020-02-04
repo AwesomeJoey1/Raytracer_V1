@@ -6,12 +6,21 @@
 #include "Hittable.h"
 #include "Random.h"
 
+// Calculates the polynomial approximation for angle dependend reflecticity probability by Christophe Schlick
+float schlick(float cosine, float refIdx)
+{
+    float r0 = (1-refIdx) / (1+refIdx);
+    r0 = r0 * r0;
+    return r0 + (1 - r0)*glm::pow((1 - cosine),2);
+}
+
 // Reflects an incoming vector about a normal vector. Only for completeness. We use glm::reflect which does the same thing.
 glm::vec3 reflect(glm::vec3 vecIn, glm::vec3 normal)
 {
     return vecIn - 2 * glm::dot(vecIn, normal) * normal;
 }
 
+// Refracts an incoming vector at an intersection of a dielectric. The two refractive indices are combined in niOverNt.
 bool refract(const glm::vec3 &vecIn, const glm::vec3 &n, float niOverNt, glm::vec3 &refracted)
 {
     glm::vec3 uv = glm::normalize(vecIn);
@@ -90,23 +99,35 @@ public:
         attenuation = glm::vec3(1.0, 1.0, 1.0);
         glm::vec3 refracted;
 
+        float reflect_prob;
+        float cosine;
+
         // normal calculation. If ray hits outer boundary
         if(glm::dot(rayIn.direction(), rec.n) > 0)
         {
             outward_normal = -rec.n;
             niOverNt = _refIdx;
+            cosine = _refIdx * glm::dot(rayIn.direction(), rec.n) / glm::length(rayIn.direction());
         }
         else { // If ray hits inner boundary
             outward_normal = rec.n;
             niOverNt = 1.0f / _refIdx;
+            cosine = -glm::dot(rayIn.direction(), rec.n) / glm::length(rayIn.direction());
         }
 
         if(refract(rayIn.direction(), outward_normal, niOverNt, refracted))
         {
-            scattered = Ray(rec.p, refracted);
-        } else {
+            reflect_prob = schlick(cosine, _refIdx);
+        }
+        else {
+            reflect_prob = 1.0f;
+        }
+
+        if (randomDoubleC() < reflect_prob)
+        {
             scattered = Ray(rec.p, reflected);
-            return false;
+        } else {
+            scattered = Ray(rec.p, refracted);
         }
         return true;
     }
