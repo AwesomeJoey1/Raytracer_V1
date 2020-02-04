@@ -12,6 +12,19 @@ glm::vec3 reflect(glm::vec3 vecIn, glm::vec3 normal)
     return vecIn - 2 * glm::dot(vecIn, normal) * normal;
 }
 
+bool refract(const glm::vec3 &vecIn, const glm::vec3 &n, float niOverNt, glm::vec3 &refracted)
+{
+    glm::vec3 uv = glm::normalize(vecIn);
+    float dt = glm::dot(uv, n);
+    float discriminant = 1.0f - niOverNt*niOverNt*(1-dt*dt);
+    if (discriminant > 0)
+    {
+        refracted = niOverNt*(uv - n*dt) - n*glm::sqrt(discriminant);
+        return true;
+    } else
+        return false;
+}
+
 // Searches a point in the unit sphere, by rejecting all points which squared length of the origin vector exceeds 1.0
 glm::vec3 randomInUnitSphere()
 {
@@ -64,4 +77,40 @@ private:
     glm::vec3 _albedo;
     float _fuzziness;
 
+};
+
+class Dielectric : public Material {
+public:
+    Dielectric(float ri) : _refIdx(ri) {}
+
+    virtual bool scatter(const Ray &rayIn, const hitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const  {
+        glm::vec3 outward_normal;
+        glm::vec3 reflected = reflect(rayIn.direction(), rec.n);
+        float niOverNt;
+        attenuation = glm::vec3(1.0, 1.0, 1.0);
+        glm::vec3 refracted;
+
+        // normal calculation. If ray hits outer boundary
+        if(glm::dot(rayIn.direction(), rec.n) > 0)
+        {
+            outward_normal = -rec.n;
+            niOverNt = _refIdx;
+        }
+        else { // If ray hits inner boundary
+            outward_normal = rec.n;
+            niOverNt = 1.0f / _refIdx;
+        }
+
+        if(refract(rayIn.direction(), outward_normal, niOverNt, refracted))
+        {
+            scattered = Ray(rec.p, refracted);
+        } else {
+            scattered = Ray(rec.p, reflected);
+            return false;
+        }
+        return true;
+    }
+
+private:
+    float _refIdx;
 };
