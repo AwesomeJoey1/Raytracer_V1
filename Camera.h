@@ -4,11 +4,15 @@
 
 class Camera {
 public:
-    Camera()
+    Camera(float vfov, float aspect)
     {
-        leftCorner = glm::vec3(-2.0, -1.0, -1.0);
-        horizontal = glm::vec3(4.0, 0.0, 0.0);
-        vertical = glm::vec3(0.0, 2.0, 0.0);
+        //vfoc
+        float theta = vfov * M_PI/180;
+        float halfHeight = tan(theta/2);
+        float halfWidth = aspect * halfHeight;
+        leftCorner = glm::vec3(-halfWidth, -halfHeight, -1.0);
+        horizontal = glm::vec3(2 * halfWidth, 0.0, 0.0);
+        vertical = glm::vec3(0.0, 2 * halfHeight, 0.0);
         origin = glm::vec3(0.0, 0.0, 0.0);
     }
 

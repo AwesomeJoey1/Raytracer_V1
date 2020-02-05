@@ -32,28 +32,31 @@ glm::vec3 color(const Ray &ray, Hittable *world, int depth)
 }
 
 int main() {
-    const int pic_x = 2000;
-    const int pic_y = 1000;
+    const int picX = 2000;
+    const int picY = 1000;
     const int pic_s = 10;
 
-    Image image(pic_x, pic_y);
+    Image image(picX, picY);
 
     Hittable *list[4];
-    list[0] = new Sphere(glm::vec3(0, 0, -1), 0.5, new Lambertian(glm::vec3(0.1, 0.2, 0.5)));
+    /*list[0] = new Sphere(glm::vec3(0, 0, -1), 0.5, new Lambertian(glm::vec3(0.1, 0.2, 0.5)));
     list[1] = new Sphere(glm::vec3(0, -100.5, -1), 100, new Lambertian(glm::vec3(0.8, 0.8, 0.0)));
     list[2] = new Sphere(glm::vec3(1, 0, -1), 0.5, new Metal(glm::vec3(0.8, 0.6, 0.2), 0.0));
     //list[3] = new Sphere(glm::vec3(-1,0,-1), 0.5, new Dielectric(1.5));
-    list[3] = new Sphere(glm::vec3(-1,0,-1), 0.5, new Dielectric(-0.45));
-    Hittable *world = new HittableList(list, 4);
-    Camera camera;
+    list[3] = new Sphere(glm::vec3(-1,0,-1), 0.5, new Dielectric(-0.45));*/
+    float R = cos(M_PI/4);
+    list[0] = new Sphere(glm::vec3(-R,0,-1), R, new Lambertian(glm::vec3(0,0,1)));
+    list[1] = new Sphere(glm::vec3(R,0,-1), R, new Lambertian(glm::vec3(1,0,0)));
+    Hittable *world = new HittableList(list, 2);
+    Camera camera(90, float(picX) / float(picY));
 
-    for (int j = 0; j < pic_y; j++) {
-        for (int i = 0; i < pic_x; i++) {
+    for (int j = 0; j < picY; j++) {
+        for (int i = 0; i < picX; i++) {
             glm::vec3 col(0,0,0);
             // Anti-aliasing: multiple rays per pixel, then average
             for(int s = 0; s < pic_s; s++) {
-                float u = float(i + randomDoubleC()) / float(pic_x);
-                float v = float(j + randomDoubleC()) / float(pic_y);
+                float u = float(i + randomDoubleC()) / float(picX);
+                float v = float(j + randomDoubleC()) / float(picY);
 
                 Ray ray = camera.getRay(u,v);
                 col += color(ray, world, 0);
