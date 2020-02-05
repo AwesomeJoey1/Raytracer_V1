@@ -107,7 +107,9 @@ public:
         {
             outward_normal = -rec.n;
             niOverNt = _refIdx;
-            cosine = _refIdx * glm::dot(rayIn.direction(), rec.n) / glm::length(rayIn.direction());
+            //cosine = _refIdx * glm::dot(rayIn.direction(), rec.n) / glm::length(rayIn.direction());
+            cosine = dot(rayIn.direction(), rec.n) / rayIn.direction().length();
+            cosine = sqrt(1 - _refIdx*_refIdx*(1-cosine*cosine));
         }
         else { // If ray hits inner boundary
             outward_normal = rec.n;
