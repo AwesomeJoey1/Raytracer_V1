@@ -1,0 +1,8 @@
+//
+// Created by klein on 22.04.2020.
+//
+
+#ifndef RAYTRACER_V1_MOVINGSPHERE_H
+#define RAYTRACER_V1_MOVINGSPHERE_H
+
+#endif //RAYTRACER_V1_MOVINGSPHERE_H
