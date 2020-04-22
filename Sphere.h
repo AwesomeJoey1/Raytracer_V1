@@ -5,7 +5,7 @@
 class Sphere : public Hittable {
 public:
     Sphere() {}
-    Sphere(const glm::vec3 &center, float radius, Material *materialPtr) :
+    Sphere(const glm::vec3 &center, float radius, std::shared_ptr<Material> materialPtr) :
             _center(center), _radius(radius), _materialPtr(materialPtr) {};
 
     virtual bool hit(const Ray &ray, float tmin, float tmax, hitRecord &rec) const;
@@ -13,7 +13,7 @@ public:
 private:
     glm::vec3 _center;
     float _radius;
-    Material *_materialPtr;
+    std::shared_ptr<Material> _materialPtr;
 };
 
 bool Sphere::hit(const Ray &ray, float tmin, float tmax, hitRecord &rec) const {
@@ -28,7 +28,8 @@ bool Sphere::hit(const Ray &ray, float tmin, float tmax, hitRecord &rec) const {
         if (temp < tmax && temp > tmin) {
             rec.t = temp;
             rec.p = ray.pointAtParam(rec.t);
-            rec.n = (rec.p - _center) / _radius;
+            glm::vec3 outwardNormal = (rec.p - _center) / _radius;
+            rec.setFaceNormal(ray, outwardNormal);
             rec.materialPtr = _materialPtr;
             return true;
         }
@@ -36,7 +37,8 @@ bool Sphere::hit(const Ray &ray, float tmin, float tmax, hitRecord &rec) const {
         if (temp < tmax && temp > tmin) {
             rec.t = temp;
             rec.p = ray.pointAtParam(rec.t);
-            rec.n = (rec.p - _center) / _radius;
+            glm::vec3 outwardNormal = (rec.p - _center) / _radius;
+            rec.setFaceNormal(ray, outwardNormal);
             rec.materialPtr = _materialPtr;
             return true;
         }

@@ -13,7 +13,7 @@ Image::Image(int width, int height)
     _imageBuffer.resize(width*height*3, 0.0f);
 }
 
-// set pixel at coordinate (x,y) with specified color
+// set pixel at coordinate (x,y) with specified rayColor
 void Image::setPixel(int x, int y, glm::vec3 color)
 {
     int index = y * _width * 3 + x * 3;

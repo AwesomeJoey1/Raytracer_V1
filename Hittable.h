@@ -8,7 +8,14 @@ struct hitRecord {
     float t;
     glm::vec3 p;
     glm::vec3 n;
-    Material *materialPtr;
+    bool frontFace;
+    std::shared_ptr<Material> materialPtr;
+
+    inline void setFaceNormal(const Ray& ray, const glm::vec3& outwardNormal)
+    {
+        frontFace = dot(ray.direction(), outwardNormal) < 0;
+        n = frontFace ? outwardNormal : -outwardNormal;
+    }
 };
 
 class Hittable {

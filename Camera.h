@@ -1,13 +1,13 @@
 #pragma once
-
-#include "Random.h"
+#include "Common.h"
 #include "Ray.h"
+
 
 glm::vec3 randomInUnitDisk()
 {
     glm::vec3 p;
     do {
-        p = 2.0f * glm::vec3(randomDoubleC(), randomDoubleC(), 0) - glm::vec3(1,1,0);
+        p = 2.0f * glm::vec3(randomDouble(), randomDouble(), 0) - glm::vec3(1,1,0);
     } while (glm::dot(p,p) >= 1.0); // Every sqrt bigger than 1 is also bigger than 1, so only check the square length.
 
     return p;
@@ -19,7 +19,7 @@ public:
     {
         _lensRadius = aperture / 2; // aperture defines the size of the lens
         // vfov given as the vertical angle of the camera
-        float theta = vfov * M_PI/180;
+        float theta = vfov * c_Pi/180;
         float halfHeight = tan(theta/2);
         float halfWidth = aspect * halfHeight;
 
