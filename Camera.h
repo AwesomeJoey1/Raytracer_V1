@@ -15,11 +15,14 @@ glm::vec3 randomInUnitDisk()
 
 class Camera {
 public:
-    Camera(glm::vec3 camOrigin, glm::vec3 lookAt, glm::vec3 up, float vfov, float aspect, float aperture, float focusDist)
+    Camera(glm::vec3 camOrigin, glm::vec3 lookAt, glm::vec3 up,
+            float vfov,
+            float aspect, float aperture, float focusDist, float t0=0.0f, float t1=0.0f)
     {
-        _lensRadius = aperture / 2; // aperture defines the size of the lens
-        // vfov given as the vertical angle of the camera
-        float theta = vfov * c_Pi/180;
+        _lensRadius = aperture / 2;     // aperture defines the size of the lens
+        _time0 = t0;                    // shutter open time
+        _time1 = t1;                    // shutter close time
+        float theta = vfov * c_Pi/180;  // vfov given as the vertical angle of the camera
         float halfHeight = tan(theta/2);
         float halfWidth = aspect * halfHeight;
 
@@ -41,10 +44,12 @@ public:
     {
         glm::vec3 rd = _lensRadius * randomInUnitDisk();
         glm::vec3 offset = _u * rd.x + _v * rd.y;
-        return Ray(_origin + offset, _leftCorner + s*_horizontal + t*_vertical - _origin - offset);
+        return Ray(_origin + offset, _leftCorner + s*_horizontal + t*_vertical - _origin - offset,
+                randomDouble(_time0, _time1));
     }
 
 private:
     glm::vec3 _leftCorner, _horizontal, _vertical, _origin, _u, _v, _w;
     float _lensRadius;
+    float _time0, _time1;
 };

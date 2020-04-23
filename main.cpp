@@ -2,11 +2,13 @@
 #include <float.h>
 #include <time.h>
 
+#include "BVH.h"
 #include "Common.h"
 #include "Camera.h"
 #include "HittableList.h"
 #include "Image.h"
 #include "Material.h"
+#include "MovingSphere.h"
 #include "Sphere.h"
 
 // Calculates pixel color. Background is a rayColor gradient from skyblue to white.
@@ -34,7 +36,8 @@ glm::vec3 rayColor(const Ray& ray, const Hittable& world, int depth)
 HittableList randomScene()
 {
     HittableList world;
-    world.add(std::make_shared<Sphere>(glm::vec3(0, -1000, 0), 1000, std::make_shared<Lambertian>(glm::vec3(0.5, 0.5, 0.5))));
+    world.add(std::make_shared<Sphere>(glm::vec3(0, -1000, 0), 1000,
+            std::make_shared<Lambertian>(glm::vec3(0.5, 0.5, 0.5))));
     int i = 1;
     for (int a = -11; a < 11; a++)
     {
@@ -45,9 +48,16 @@ HittableList randomScene()
             if(glm::length(center-glm::vec3(4,0.2,0)) > 0.9) {
                 if(chooseMat < 0.8)
                 {
-                    world.add(std::make_shared<Sphere>(center, 0.2, std::make_shared<Lambertian>(glm::vec3(randomDouble() * randomDouble(),
-                                                                                                           randomDouble() * randomDouble(),
-                                                                                                           randomDouble() * randomDouble()))));
+                    world.add(std::make_shared<MovingSphere>(center, center + glm::vec3(0, randomDouble(0.0, 0.5), 0), 0.0f, 1.0f,  0.2,
+                            std::make_shared<Lambertian>(glm::vec3(randomDouble() * randomDouble(),
+                                    randomDouble() * randomDouble(),
+                                    randomDouble() * randomDouble()))));
+                }
+                else if (chooseMat < 0.95) {
+                    // metal
+                    auto albedo = glm::vec3(randomDouble(.5, 1), randomDouble(.5, 1), randomDouble(.5, 1));
+                    auto fuzz = randomDouble(0, .5);
+                    world.add(std::make_shared<Sphere>(center, 0.2, std::make_shared<Metal>(albedo, fuzz)));
                 }
                 else {
                     world.add(std::make_shared<Sphere>(center, 0.2, std::make_shared<Dielectric>(1.5)));
@@ -60,7 +70,7 @@ HittableList randomScene()
     world.add(std::make_shared<Sphere>(glm::vec3(-4,1,0), 1.0, std::make_shared<Lambertian>(glm::vec3(0.4, 0.2, 0.1))));
     world.add(std::make_shared<Sphere>(glm::vec3(4,1,0), 1.0, std::make_shared<Metal>(glm::vec3(0.7, 0.6, 0.5), 0.0)));
 
-    return world;
+    return HittableList(std::make_shared<BVHNode>(world, 0.0, 1.0));
 }
 
 int main() {
@@ -88,7 +98,7 @@ int main() {
     glm::vec3 lookAt(0,0,0);
     float distToFocus = 10.0f;
     float aperture = 0.1f;
-    Camera camera(camOrigin, lookAt, glm::vec3(0,1,0),20, float(picX) / float(picY), aperture, distToFocus);
+    Camera camera(camOrigin, lookAt, glm::vec3(0,1,0),20, float(picX) / float(picY), aperture, distToFocus, 0.0f, 1.0f);
 
     std::cout << "Rendering...\n";
     t_stop = clock();

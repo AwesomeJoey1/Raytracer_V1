@@ -32,3 +32,10 @@ inline double randomDoubleCpp()
     static std::function<double()> rand_generator = std::bind(distribution, generator);
     return rand_generator();
 }
+
+inline int randomInt(int min, int max)
+{
+    return static_cast<int>(randomDouble(min, max+1));
+}
+
+#include "Ray.h"

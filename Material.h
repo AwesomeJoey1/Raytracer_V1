@@ -55,8 +55,8 @@ public:
 
     virtual bool scatter(const Ray &rayIn, const hitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const
     {
-        glm::vec3 scatterDirection = rec.p + rec.n + randomUnitVector();
-        scattered = Ray(rec.p, scatterDirection - rec.p);
+        glm::vec3 scatterDirection = rec.n + randomUnitVector();
+        scattered = Ray(rec.p, scatterDirection, rayIn.time());
         attenuation = _albedo;
         return true;
     }
@@ -74,7 +74,7 @@ public:
     {
         glm::vec3 reflectedDirection = reflect(glm::normalize(rayIn.direction()), rec.n);
         // Fuzziness as pertubation of the material. 0 = no pertubation
-        scattered = Ray(rec.p, reflectedDirection + _fuzz*randomUnitVector());
+        scattered = Ray(rec.p, reflectedDirection + _fuzz*randomUnitVector(), rayIn.time());
         attenuation = _albedo;
         return (glm::dot(scattered.direction(), rec.n) > 0.0f);
     }
@@ -100,19 +100,19 @@ public:
         if (niOverNt*sinTheta > 1.0f)
         {
             glm::vec3 reflected = reflect(unitDirection, rec.n);
-            scattered = Ray(rec.p, reflected);
+            scattered = Ray(rec.p, reflected, rayIn.time());
             return true;
         }
 
         if (randomDouble() < schlick(cosTheta, niOverNt))
         {
             glm::vec3 reflected = reflect(unitDirection, rec.n);
-            scattered = Ray(rec.p, reflected);
+            scattered = Ray(rec.p, reflected, rayIn.time());
             return true;
         }
 
         glm::vec3 refracted = refract(unitDirection, rec.n, niOverNt);
-        scattered = Ray(rec.p, refracted);
+        scattered = Ray(rec.p, refracted, rayIn.time());
         return true;
     }
 
