@@ -9,6 +9,8 @@ struct hitRecord {
     float t;
     glm::vec3 p;
     glm::vec3 n;
+    float u;
+    float v;
     bool frontFace;
     std::shared_ptr<Material> materialPtr;
 

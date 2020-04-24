@@ -10,6 +10,7 @@
 #include "Material.h"
 #include "MovingSphere.h"
 #include "Sphere.h"
+#include "Texture.h"
 
 // Calculates pixel color. Background is a rayColor gradient from skyblue to white.
 glm::vec3 rayColor(const Ray& ray, const Hittable& world, int depth)
@@ -36,8 +37,12 @@ glm::vec3 rayColor(const Ray& ray, const Hittable& world, int depth)
 HittableList randomScene()
 {
     HittableList world;
+    auto checkerTex = std::make_shared<CheckerTexture>(
+            std::make_shared<ConstantTexture>(glm::vec3(0.2, 0.3, 0.1)),
+            std::make_shared<ConstantTexture>(glm::vec3(0.9, 0.9, 0.9)));
+
     world.add(std::make_shared<Sphere>(glm::vec3(0, -1000, 0), 1000,
-            std::make_shared<Lambertian>(glm::vec3(0.5, 0.5, 0.5))));
+            std::make_shared<Lambertian>(checkerTex)));
     int i = 1;
     for (int a = -11; a < 11; a++)
     {
@@ -49,9 +54,7 @@ HittableList randomScene()
                 if(chooseMat < 0.8)
                 {
                     world.add(std::make_shared<MovingSphere>(center, center + glm::vec3(0, randomDouble(0.0, 0.5), 0), 0.0f, 1.0f,  0.2,
-                            std::make_shared<Lambertian>(glm::vec3(randomDouble() * randomDouble(),
-                                    randomDouble() * randomDouble(),
-                                    randomDouble() * randomDouble()))));
+                            std::make_shared<Lambertian>(std::make_shared<ConstantTexture>(randomVec3()))));
                 }
                 else if (chooseMat < 0.95) {
                     // metal
@@ -66,11 +69,28 @@ HittableList randomScene()
         }
     }
 
-    world.add(std::make_shared<Sphere>(glm::vec3(0,1,0), 1.0, std::make_shared<Dielectric>(1.5)));
-    world.add(std::make_shared<Sphere>(glm::vec3(-4,1,0), 1.0, std::make_shared<Lambertian>(glm::vec3(0.4, 0.2, 0.1))));
-    world.add(std::make_shared<Sphere>(glm::vec3(4,1,0), 1.0, std::make_shared<Metal>(glm::vec3(0.7, 0.6, 0.5), 0.0)));
+    world.add(std::make_shared<Sphere>(glm::vec3(0,1,0), 1.0,
+            std::make_shared<Dielectric>(1.5)));
+    world.add(std::make_shared<Sphere>(glm::vec3(-4,1,0), 1.0,
+            std::make_shared<Lambertian>(std::make_shared<ConstantTexture>(glm::vec3(0.4, 0.2, 0.1)))));
+    world.add(std::make_shared<Sphere>(glm::vec3(4,1,0), 1.0,
+            std::make_shared<Metal>(glm::vec3(0.7, 0.6, 0.5), 0.0)));
 
     return HittableList(std::make_shared<BVHNode>(world, 0.0, 1.0));
+}
+
+HittableList twoPerlinSpheres()
+{
+    HittableList objects;
+
+    auto perlinTex = std::make_shared<NoiseTexture>(4);
+    objects.add(std::make_shared<Sphere>(glm::vec3(0, -1000, 0), 1000,
+                                         std::make_shared<Lambertian>(perlinTex)));
+
+    objects.add(std::make_shared<Sphere>(glm::vec3(0, 2, 0), 2,
+                                         std::make_shared<Lambertian>(perlinTex)));
+
+    return HittableList(std::make_shared<BVHNode>(objects, 0.0, 1.0));
 }
 
 int main() {
@@ -90,7 +110,8 @@ int main() {
     world.add(std::make_shared<Sphere>(glm::vec3(1, 0, -1), 0.5, std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0)));
     world.add(std::make_shared<Sphere>(glm::vec3(-1,0,-1), 0.5, std::make_shared<Dielectric>(1.5)));
     world.add(std::make_shared<Sphere>(glm::vec3(-1,0,-1), -0.49, std::make_shared<Dielectric>(1.5)));*/
-    world = randomScene();
+    //world = randomScene();
+    world = twoPerlinSpheres();
     t_stop = clock();
     std::cout << "\t\t\t" << (t_stop - t_start) <<"ms\n";
 

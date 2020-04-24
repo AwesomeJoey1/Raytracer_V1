@@ -2,8 +2,9 @@
 
 #include <glm/glm/gtx/norm.hpp>
 
-#include "Ray.h"
 #include "Hittable.h"
+#include "Ray.h"
+#include "Texture.h"
 
 // Calculates the polynomial approximation for angle dependend reflecticity probability by Christophe Schlick
 float schlick(float cosine, float refIdx)
@@ -51,18 +52,18 @@ public:
 class Lambertian : public Material
 {
 public:
-    Lambertian(const glm::vec3& albedo) : _albedo(albedo) {}
+    Lambertian(std::shared_ptr<Texture> albedo) : _albedo(albedo) {}
 
     virtual bool scatter(const Ray &rayIn, const hitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const
     {
         glm::vec3 scatterDirection = rec.n + randomUnitVector();
         scattered = Ray(rec.p, scatterDirection, rayIn.time());
-        attenuation = _albedo;
+        attenuation = _albedo->value(rec.u, rec.v, rec.p);
         return true;
     }
 
 private:
-    glm::vec3 _albedo;
+    std::shared_ptr<Texture> _albedo;
 };
 
 class Metal : public Material

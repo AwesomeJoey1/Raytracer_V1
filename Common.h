@@ -5,6 +5,8 @@
 #include <functional>
 #include <random>
 
+#include "Ray.h"
+
 // Constants
 
 const float c_Infinity = std::numeric_limits<float>::infinity();
@@ -38,4 +40,17 @@ inline int randomInt(int min, int max)
     return static_cast<int>(randomDouble(min, max+1));
 }
 
-#include "Ray.h"
+inline glm::vec3 randomVec3()
+{
+    return glm::vec3(randomDouble() * randomDouble(),
+                     randomDouble() * randomDouble(),
+                     randomDouble() * randomDouble());
+}
+
+inline glm::vec3 randomVec3(double min, double max)
+{
+    return glm::vec3(randomDouble(min, max) * randomDouble(min, max),
+                     randomDouble(min, max) * randomDouble(min, max),
+                     randomDouble(min, max) * randomDouble(min, max));
+}
+
