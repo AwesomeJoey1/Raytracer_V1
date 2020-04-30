@@ -1,4 +1,3 @@
-#include <iostream>
 #include <float.h>
 #include <time.h>
 
@@ -11,6 +10,23 @@
 #include "MovingSphere.h"
 #include "Sphere.h"
 #include "Texture.h"
+
+
+glm::vec3 background(const glm::vec3& rayDir, int backgroundTheme)
+{
+    glm::vec3 background(0);
+    switch(backgroundTheme)
+    {
+        case 0:
+            break;
+        case 1:
+            glm::vec3 unit_direction = glm::normalize(rayDir);
+            float t = 0.5f * (unit_direction.y + 1.0f);
+            background = (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
+            break;
+    }
+    return background;
+}
 
 // Calculates pixel color. Background is a rayColor gradient from skyblue to white.
 glm::vec3 rayColor(const Ray& ray, const Hittable& world, int depth)
@@ -29,9 +45,7 @@ glm::vec3 rayColor(const Ray& ray, const Hittable& world, int depth)
         return glm::vec3(0.0f,0.0f,0.0f);
     }
 
-    glm::vec3 unit_direction = glm::normalize(ray.direction());
-    float t = 0.5f * (unit_direction.y + 1.0f);
-    return (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
+    return background(ray.direction(), 1);
 }
 
 HittableList randomScene()
@@ -93,11 +107,23 @@ HittableList twoPerlinSpheres()
     return HittableList(std::make_shared<BVHNode>(objects, 0.0, 1.0));
 }
 
+HittableList earth()
+{
+    HittableList objects;
+
+    auto earthPic = std::make_shared<Image>("../Textures/earthmap.jpg");
+    auto earthSurface = std::make_shared<Lambertian>(std::make_shared<ImageTexture>(earthPic));
+    objects.add(std::make_shared<Sphere>(glm::vec3(0,0,0), 2, earthSurface));
+
+    return objects;
+}
+
 int main() {
     const int picX = 1200;
-    const int picY = 800;
-    const int pic_s = 10;
+    const int picY = 600;
+    const int pic_s = 100;
     const int maxDepth = 50;
+    const auto aspectRatio = float(picX) / float(picY);
     size_t t_start, t_stop, t_end;
 
     Image image(picX, picY);
@@ -110,16 +136,39 @@ int main() {
     world.add(std::make_shared<Sphere>(glm::vec3(1, 0, -1), 0.5, std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2), 0.0)));
     world.add(std::make_shared<Sphere>(glm::vec3(-1,0,-1), 0.5, std::make_shared<Dielectric>(1.5)));
     world.add(std::make_shared<Sphere>(glm::vec3(-1,0,-1), -0.49, std::make_shared<Dielectric>(1.5)));*/
-    //world = randomScene();
-    world = twoPerlinSpheres();
     t_stop = clock();
-    std::cout << "\t\t\t" << (t_stop - t_start) <<"ms\n";
 
-    glm::vec3 camOrigin(13 ,2,3);
-    glm::vec3 lookAt(0,0,0);
+
+    glm::vec3 camOrigin, lookAt;
+    float vfov = 40.0f;
     float distToFocus = 10.0f;
     float aperture = 0.1f;
-    Camera camera(camOrigin, lookAt, glm::vec3(0,1,0),20, float(picX) / float(picY), aperture, distToFocus, 0.0f, 1.0f);
+    int mode = 2;
+    switch (mode)
+    {
+        case 0:
+            world = randomScene();
+            camOrigin = glm::vec3(13 ,2,3);
+            lookAt = glm::vec3(0);
+            vfov = 20.0f;
+            break;
+        case 1:
+            world = twoPerlinSpheres();
+            camOrigin = glm::vec3(13 ,2,3);
+            lookAt = glm::vec3(0);
+            vfov = 20.0f;
+            break;
+        case 2:
+            world = earth();
+            camOrigin = glm::vec3(0,0,12);
+            lookAt = glm::vec3(0,0,0);
+            vfov = 20.0f;
+            break;
+    }
+    std::cout << "\t\t\t" << (t_stop - t_start) <<"ms\n";
+
+
+    Camera camera(camOrigin, lookAt, glm::vec3(0,1,0),vfov, aspectRatio, aperture, distToFocus, 0.0f, 1.0f);
 
     std::cout << "Rendering...\n";
     t_stop = clock();

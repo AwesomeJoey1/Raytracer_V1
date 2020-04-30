@@ -5,8 +5,16 @@
 class Image {
 public:
     Image(int width, int height);
-    void setPixel(int x, int y, glm::vec3);
+    Image(const char* path);
+
+    bool hasData();
     void save();
+
+    glm::vec3 getPixel(int x, int y);
+    void setPixel(int x, int y, glm::vec3);
+
+    int width();
+    int height();
 
 private:
     int _width, _height;

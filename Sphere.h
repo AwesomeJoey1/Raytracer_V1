@@ -12,6 +12,8 @@ public:
     virtual bool boundingBox(float t0, float t1, AABB& outputBox) const;
 
 private:
+    void sphereUV(const glm::vec3& p, float& u, float& v) const;
+
     glm::vec3 _center;
     float _radius;
     std::shared_ptr<Material> _materialPtr;
@@ -35,6 +37,7 @@ bool Sphere::hit(const Ray &ray, float tMin, float tMax, hitRecord &rec) const
             glm::vec3 outwardNormal = (rec.p - _center) / _radius;
             rec.setFaceNormal(ray, outwardNormal);
             rec.materialPtr = _materialPtr;
+            sphereUV((rec.p - _center)/_radius, rec.u, rec.v);
             return true;
         }
 
@@ -45,6 +48,7 @@ bool Sphere::hit(const Ray &ray, float tMin, float tMax, hitRecord &rec) const
             glm::vec3 outwardNormal = (rec.p - _center) / _radius;
             rec.setFaceNormal(ray, outwardNormal);
             rec.materialPtr = _materialPtr;
+            sphereUV((rec.p - _center)/_radius, rec.u, rec.v);
             return true;
         }
     }
@@ -60,3 +64,15 @@ bool Sphere::boundingBox(float t0, float t1, AABB& outputBox) const {
     return true;
 }
 
+void Sphere::sphereUV(const glm::vec3 &p, float &u, float &v) const
+{
+    /* Parametric description of a point on a unit sphere
+     * x = cos(phi)cos(theta)
+     * y = sin(phi)cos(theta)
+     * y = sin(theta)
+     */
+    auto phi = atan2(p.z, p.x);         // atan returns in range [-pi, pi]
+    auto theta = asin(p.y);             // asin returns in range [-pi/2, pi/2]
+    u = 1.0f-(phi+c_Pi)/(2*c_Pi);
+    v = (theta + c_Pi/2.0) / c_Pi;
+}
