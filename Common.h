@@ -15,6 +15,13 @@ const float c_Pi = 3.1415926535897932385;
 
 inline float degreeToRadians(float angle) { return angle * c_Pi / 180.0f; }
 
+inline float clamp(float x, float min, float max)
+{
+    if (x < min) return min;
+    if (x > max) return max;
+    return x;
+}
+
 inline float ffmin(float a, float b) { return a <= b ? a : b; }
 inline float ffmax(float a, float b) { return a >= b ? a : b; }
 

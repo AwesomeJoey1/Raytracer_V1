@@ -46,50 +46,15 @@ glm::vec3 randomUnitVector()
 class Material
 {
 public:
-    virtual bool scatter(const Ray &rayIn, const hitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const = 0;
-};
-
-class Lambertian : public Material
-{
-public:
-    Lambertian(std::shared_ptr<Texture> albedo) : _albedo(albedo) {}
-
-    virtual bool scatter(const Ray &rayIn, const hitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const
-    {
-        glm::vec3 scatterDirection = rec.n + randomUnitVector();
-        scattered = Ray(rec.p, scatterDirection, rayIn.time());
-        attenuation = _albedo->value(rec.u, rec.v, rec.p);
-        return true;
-    }
-
-private:
-    std::shared_ptr<Texture> _albedo;
-};
-
-class Metal : public Material
-{
-public:
-    Metal(const glm::vec3& albedo, float fuzz) : _albedo(albedo), _fuzz(fuzz < 1.0f ? fuzz : 1.0f) {}
-
-    virtual bool scatter(const Ray& rayIn, const hitRecord& rec, glm::vec3& attenuation, Ray& scattered) const
-    {
-        glm::vec3 reflectedDirection = reflect(glm::normalize(rayIn.direction()), rec.n);
-        // Fuzziness as pertubation of the material. 0 = no pertubation
-        scattered = Ray(rec.p, reflectedDirection + _fuzz*randomUnitVector(), rayIn.time());
-        attenuation = _albedo;
-        return (glm::dot(scattered.direction(), rec.n) > 0.0f);
-    }
-
-private:
-    glm::vec3 _albedo;
-    float _fuzz;
+    virtual glm::vec3 emitted(float u, float v, const glm::vec3& p) const { return glm::vec3(0,0,0); }
+    virtual bool scatter(const Ray& rayIn, const hitRecord& rec, glm::vec3& attenuation, Ray& scattered) const = 0;
 };
 
 class Dielectric : public Material {
 public:
     Dielectric(float ri) : _refIdx(ri) {}
 
-    virtual bool scatter(const Ray &rayIn, const hitRecord &rec, glm::vec3 &attenuation, Ray &scattered) const
+    virtual bool scatter(const Ray& rayIn, const hitRecord& rec, glm::vec3& attenuation, Ray& scattered) const override
     {
         attenuation = glm::vec3(1.0, 1.0, 1.0);
         float niOverNt = (rec.frontFace) ? (1.0f / _refIdx) : (_refIdx);
@@ -119,4 +84,60 @@ public:
 
 private:
     float _refIdx;
+};
+
+class DiffuseLight : public Material
+{
+public:
+    DiffuseLight(std::shared_ptr<Texture> emit) : _emit(emit) {}
+
+    virtual glm::vec3 emitted(float u, float v, const glm::vec3& p) const override
+    {
+        return _emit->value(u, v, p);
+    }
+
+    virtual bool scatter(const Ray& rayIn, const hitRecord& rec, glm::vec3& attenuation, Ray& scattered) const override
+    {
+        return false;
+    }
+
+private:
+    std::shared_ptr<Texture> _emit;
+
+};
+
+class Lambertian : public Material
+{
+public:
+    Lambertian(std::shared_ptr<Texture> albedo) : _albedo(albedo) {}
+
+    virtual bool scatter(const Ray& rayIn, const hitRecord& rec, glm::vec3& attenuation, Ray& scattered) const override
+    {
+        glm::vec3 scatterDirection = rec.n + randomUnitVector();
+        scattered = Ray(rec.p, scatterDirection, rayIn.time());
+        attenuation = _albedo->value(rec.u, rec.v, rec.p);
+        return true;
+    }
+
+private:
+    std::shared_ptr<Texture> _albedo;
+};
+
+class Metal : public Material
+{
+public:
+    Metal(const glm::vec3& albedo, float fuzz) : _albedo(albedo), _fuzz(fuzz < 1.0f ? fuzz : 1.0f) {}
+
+    virtual bool scatter(const Ray& rayIn, const hitRecord& rec, glm::vec3& attenuation, Ray& scattered) const override
+    {
+        glm::vec3 reflectedDirection = reflect(glm::normalize(rayIn.direction()), rec.n);
+        // Fuzziness as pertubation of the material. 0 = no pertubation
+        scattered = Ray(rec.p, reflectedDirection + _fuzz*randomUnitVector(), rayIn.time());
+        attenuation = _albedo;
+        return (glm::dot(scattered.direction(), rec.n) > 0.0f);
+    }
+
+private:
+    glm::vec3 _albedo;
+    float _fuzz;
 };

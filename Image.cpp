@@ -45,7 +45,7 @@ void Image::save()
     stbi_flip_vertically_on_write(true);
     const uint8_t* imgArray = &(_imageBuffer[0]);
     stbi_write_png("image.png", _width, _height, NUM_CHANNELS, imgArray, _width * NUM_CHANNELS);
-    stbi_write_jpg("image.jpg", _width, _height, NUM_CHANNELS, imgArray, 100);
+    //stbi_write_jpg("image.jpg", _width, _height, NUM_CHANNELS, imgArray, 100);
 }
 
 // return image color at position (x,y)

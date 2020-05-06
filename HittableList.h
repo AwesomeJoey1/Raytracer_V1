@@ -13,20 +13,20 @@ public:
     void clear() { _objects.clear(); }
     void add(std::shared_ptr<Hittable> object) { _objects.push_back(object); }
 
-    virtual bool hit(const Ray& ray, float tmin, float tmax, hitRecord& rec) const;
-    virtual bool boundingBox(float t0, float t1, AABB& outputBox) const;
+    virtual bool hit(const Ray& ray, float tMin, float tMax, hitRecord& rec) const;
+    virtual bool boundingBox(float tMin, float tMax, AABB& outputBox) const;
 
     std::vector<std::shared_ptr<Hittable>> _objects;
 };
 
-bool HittableList::hit(const Ray& ray, float tmin, float tmax, hitRecord& rec) const
+bool HittableList::hit(const Ray& ray, float tMin, float tMax, hitRecord& rec) const
 {
     hitRecord tempRec;
     bool hitAnything = false;
-    float closestSoFar = tmax;
+    float closestSoFar = tMax;
     for (const auto& object : _objects)
     {
-        if(object->hit(ray, tmin, closestSoFar, tempRec))
+        if(object->hit(ray, tMin, closestSoFar, tempRec))
         {
             hitAnything = true;
             closestSoFar = tempRec.t;
@@ -36,7 +36,7 @@ bool HittableList::hit(const Ray& ray, float tmin, float tmax, hitRecord& rec) c
     return hitAnything;
 }
 
-bool HittableList::boundingBox(float t0, float t1, AABB& outputBox) const
+bool HittableList::boundingBox(float tMin, float tMax, AABB& outputBox) const
 {
     if (_objects.empty()) return false;
 
@@ -45,7 +45,7 @@ bool HittableList::boundingBox(float t0, float t1, AABB& outputBox) const
 
     for (const auto& object : _objects)
     {
-        if(!object->boundingBox(t0, t1, tempBox)) return false;
+        if(!object->boundingBox(tMin, tMax, tempBox)) return false;
 
         outputBox = firstBox ? tempBox : surroundingBox(outputBox, tempBox);
         firstBox = false;

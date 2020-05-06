@@ -23,6 +23,28 @@ struct hitRecord {
 
 class Hittable {
 public:
-    virtual bool hit(const Ray &ray, float tmin, float tmax, hitRecord &rec) const = 0;
     virtual bool boundingBox(float t0, float t1, AABB& outputBox) const = 0;
+    virtual bool hit(const Ray &ray, float tMin, float tMax, hitRecord &rec) const = 0;
+};
+
+class FlipFace : public Hittable {
+public:
+    FlipFace(std::shared_ptr<Hittable> objectPtr) : _objectPtr(objectPtr) {}
+
+    virtual bool boundingBox(float t0, float t1, AABB& outputBox) const override
+    {
+        return _objectPtr->boundingBox(t0, t1, outputBox);
+
+    }
+    virtual bool hit(const Ray &ray, float tMin, float tMax, hitRecord &rec) const override
+    {
+        if (!_objectPtr->hit(ray, tMin, tMax, rec))
+            return false;
+
+        rec.frontFace = !rec.frontFace;
+        return true;
+    }
+
+private:
+    std::shared_ptr<Hittable> _objectPtr;
 };
