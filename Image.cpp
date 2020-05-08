@@ -29,8 +29,6 @@ Image::Image(const char* path)
     {
         _imageBuffer[idx] = static_cast<int>(data[idx]);
     }
-
-    save();
 }
 
 // checks if image data is available

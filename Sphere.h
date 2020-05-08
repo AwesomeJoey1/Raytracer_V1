@@ -19,6 +19,11 @@ private:
     std::shared_ptr<Material> _materialPtr;
 };
 
+bool Sphere::boundingBox(float t0, float t1, AABB& outputBox) const {
+    outputBox = AABB(_center - _radius, _center + _radius);
+    return true;
+}
+
 bool Sphere::hit(const Ray &ray, float tMin, float tMax, hitRecord &rec) const
 {
     glm::vec3 oc = ray.origin() - _center;
@@ -53,15 +58,6 @@ bool Sphere::hit(const Ray &ray, float tMin, float tMax, hitRecord &rec) const
         }
     }
     return false;
-}
-
-bool Sphere::boundingBox(float t0, float t1, AABB& outputBox) const {
-    if (_center.y < -200)
-    {
-        int a = 1;
-    }
-    outputBox = AABB(_center - _radius, _center + _radius);
-    return true;
 }
 
 void Sphere::sphereUV(const glm::vec3 &p, float &u, float &v) const

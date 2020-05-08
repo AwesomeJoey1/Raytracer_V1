@@ -6,6 +6,8 @@
 #include <functional>
 #include <random>
 
+#include <glm/glm/gtx/norm.hpp>
+
 #include "Ray.h"
 
 // Constants
@@ -48,6 +50,15 @@ inline int randomInt(int min, int max)
     return static_cast<int>(randomDouble(min, max+1));
 }
 
+// returns a random reflection referring to a Lambertian diffuse material
+inline glm::vec3 randomUnitVector()
+{
+    auto a = randomDouble(0, 2*c_Pi);
+    auto z = randomDouble(-1, 1);
+    auto r = glm::sqrt(1-z*z);
+    return glm::vec3(r*cos(a),r*sin(a),z);
+}
+
 inline glm::vec3 randomVec3()
 {
     return glm::vec3(randomDouble() * randomDouble(),
@@ -57,8 +68,21 @@ inline glm::vec3 randomVec3()
 
 inline glm::vec3 randomVec3(double min, double max)
 {
-    return glm::vec3(randomDouble(min, max) * randomDouble(min, max),
-                     randomDouble(min, max) * randomDouble(min, max),
-                     randomDouble(min, max) * randomDouble(min, max));
+    return glm::vec3(randomDouble(min, max), randomDouble(min, max), randomDouble(min, max));
 }
 
+inline glm::vec3 randomInUnitSphere() {
+    while (true) {
+        auto p = randomVec3(-1,1);
+        if (glm::length2(p) >= 1) continue;
+        return p;
+    }
+}
+
+inline glm::vec3 randomInHemisphere(const glm::vec3& normal) {
+    glm::vec3 inUnitSphere = randomInUnitSphere();
+    if (dot(inUnitSphere, normal) > 0.0) // In the same hemisphere as the normal
+        return inUnitSphere;
+    else
+        return -inUnitSphere;
+}

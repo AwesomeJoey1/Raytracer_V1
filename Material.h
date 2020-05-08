@@ -1,7 +1,6 @@
 #pragma once
 
-#include <glm/glm/gtx/norm.hpp>
-
+#include "Common.h"
 #include "Hittable.h"
 #include "Ray.h"
 #include "Texture.h"
@@ -32,16 +31,6 @@ glm::vec3 refract(const glm::vec3 &vecIn, const glm::vec3 &n, float niOverNt)
 
     return outParallel + outPerpendicular;
 }
-
-// returns a random reflection referring to a Lambertian diffuse material
-glm::vec3 randomUnitVector()
-{
-    auto a = randomDouble(0, 2*c_Pi);
-    auto z = randomDouble(-1, 1);
-    auto r = glm::sqrt(1-z*z);
-    return glm::vec3(r*cos(a),r*sin(a),z);
-}
-
 
 class Material
 {
@@ -104,6 +93,21 @@ public:
 private:
     std::shared_ptr<Texture> _emit;
 
+};
+
+class Isotropic : public Material
+{
+public:
+    Isotropic(std::shared_ptr<Texture> albedo) : _albedo(albedo) {}
+    virtual bool scatter(const Ray& rayIn, const hitRecord& rec, glm::vec3& attenuation, Ray& scattered) const override
+    {
+        scattered = Ray(rec.p, randomInUnitSphere(), rayIn.time());
+        attenuation = _albedo->value(rec.u, rec.v, rec. p);
+        return true;
+    }
+
+private:
+    std::shared_ptr<Texture> _albedo;
 };
 
 class Lambertian : public Material

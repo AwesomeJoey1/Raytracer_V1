@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include "Image.h"
 #include "Perlin.h"
 
 class Texture

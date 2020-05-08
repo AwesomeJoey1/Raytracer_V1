@@ -2,8 +2,10 @@
 #include <time.h>
 
 #include "AARect.h"
+#include "Box.h"
 #include "BVH.h"
 #include "Common.h"
+#include "ConstantMedium.h"
 #include "Camera.h"
 #include "HittableList.h"
 #include "Image.h"
@@ -151,13 +153,120 @@ HittableList cornellBox()
     objects.add(std::make_shared<xzRect>(0, 555, 0, 555, 0, white));
     objects.add(std::make_shared<FlipFace>(std::make_shared<xyRect>(0, 555, 0, 555, 555, white)));
 
+    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(glm::vec3(0), glm::vec3(165, 330, 165), white);
+    box1 = std::make_shared<RotateY>(box1, 15);
+    box1 = std::make_shared<Translate>(box1, glm::vec3(265, 0, 295));
+    objects.add(box1);
+
+    std::shared_ptr<Hittable> box2 = std::make_shared<Box>(glm::vec3(0), glm::vec3(165), white);
+    box2 = std::make_shared<RotateY>(box2, -18);
+    box2 = std::make_shared<Translate>(box2, glm::vec3(130, 0, 65));
+    objects.add(box2);
+
+    return objects;
+}
+
+HittableList cornellSmoke()
+{
+    HittableList objects;
+
+    auto red = std::make_shared<Lambertian>(std::make_shared<ConstantTexture>(glm::vec3(0.65f, 0.05f, 0.05f)));
+    auto white = std::make_shared<Lambertian>(std::make_shared<ConstantTexture>(glm::vec3(0.73f)));
+    auto green = std::make_shared<Lambertian>(std::make_shared<ConstantTexture>(glm::vec3(0.12f, 0.45f, 0.15f)));
+    auto light = std::make_shared<DiffuseLight>(std::make_shared<ConstantTexture>(glm::vec3(5)));
+
+    objects.add(std::make_shared<FlipFace>(std::make_shared<yzRect>(0, 555, 0, 555, 555, green)));
+    objects.add(std::make_shared<yzRect>(0, 555, 0, 555, 0, red));
+    objects.add(std::make_shared<xzRect>(113, 443, 127, 432, 554, light));
+    objects.add(std::make_shared<FlipFace>(std::make_shared<xzRect>(0, 555, 0, 555, 555, white)));
+    objects.add(std::make_shared<xzRect>(0, 555, 0, 555, 0, white));
+    objects.add(std::make_shared<FlipFace>(std::make_shared<xyRect>(0, 555, 0, 555, 555, white)));
+
+    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(glm::vec3(0), glm::vec3(165, 330, 165), white);
+    box1 = std::make_shared<RotateY>(box1, 15);
+    box1 = std::make_shared<Translate>(box1, glm::vec3(265, 0, 295));
+    objects.add(std::make_shared<ConstantMedium>(box1, 0.01f, std::make_shared<ConstantTexture>(glm::vec3(0))));
+
+    std::shared_ptr<Hittable> box2 = std::make_shared<Box>(glm::vec3(0), glm::vec3(165), white);
+    box2 = std::make_shared<RotateY>(box2, -18);
+    box2 = std::make_shared<Translate>(box2, glm::vec3(130, 0, 65));
+    objects.add(std::make_shared<ConstantMedium>(box2, 0.01f, std::make_shared<ConstantTexture>(glm::vec3(1))));
+
+    return objects;
+}
+
+HittableList nextWeekendFinal()
+{
+    HittableList boxes1;
+    auto ground = std::make_shared<Lambertian>(std::make_shared<ConstantTexture>(glm::vec3(0.48, 0.83, 0.53)));
+
+    const int boxes_per_side = 20;
+    for (int i = 0; i < boxes_per_side; i++) {
+        for (int j = 0; j < boxes_per_side; j++) {
+            auto w = 100.0;
+            auto x0 = -1000.0 + i*w;
+            auto z0 = -1000.0 + j*w;
+            auto y0 = 0.0;
+            auto x1 = x0 + w;
+            auto y1 = randomDouble(1,101);
+            auto z1 = z0 + w;
+
+            boxes1.add(std::make_shared<Box>(glm::vec3(x0,y0,z0), glm::vec3(x1,y1,z1), ground));
+        }
+    }
+
+    HittableList objects;
+
+    objects.add(std::make_shared<BVHNode>(boxes1, 0, 1));
+
+    auto light = std::make_shared<DiffuseLight>(std::make_shared<ConstantTexture>(glm::vec3(7)));
+    objects.add(std::make_shared<xzRect>(123, 423, 147, 412, 554, light));
+
+    auto center1 = glm::vec3(400, 400, 200);
+    auto center2 = center1 + glm::vec3(30,0,0);
+    auto moving_sphere_material =
+            std::make_shared<Lambertian>(std::make_shared<ConstantTexture>(glm::vec3(0.7, 0.3, 0.1)));
+    objects.add(std::make_shared<MovingSphere>(center1, center2, 0, 1, 50, moving_sphere_material));
+
+    objects.add(std::make_shared<Sphere>(glm::vec3(260, 150, 45), 50, std::make_shared<Dielectric>(1.5)));
+    objects.add(std::make_shared<Sphere>(
+            glm::vec3(0, 150, 145), 50, std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.9), 10.0)
+    ));
+
+    auto boundary = std::make_shared<Sphere>(glm::vec3(360,150,145), 70, std::make_shared<Dielectric>(1.5));
+    objects.add(boundary);
+    objects.add(std::make_shared<ConstantMedium>(
+            boundary, 0.2, std::make_shared<ConstantTexture>(glm::vec3(0.2, 0.4, 0.9))
+    ));
+    boundary = std::make_shared<Sphere>(glm::vec3(0), 5000, std::make_shared<Dielectric>(1.5));
+    objects.add(std::make_shared<ConstantMedium>(
+            boundary, .0001, std::make_shared<ConstantTexture>(glm::vec3(1))));
+
+    auto emat = std::make_shared<Lambertian>(std::make_shared<ImageTexture>(std::make_shared<Image>("../Textures/earthmap.jpg")));
+    objects.add(std::make_shared<Sphere>(glm::vec3(400,200,400), 100, emat));
+    auto pertext = std::make_shared<NoiseTexture>(4);
+    objects.add(std::make_shared<Sphere>(glm::vec3(220,280,300), 80, std::make_shared<Lambertian>(pertext)));
+
+    HittableList boxes2;
+    auto white = std::make_shared<Lambertian>(std::make_shared<ConstantTexture>(glm::vec3(.73)));
+    int ns = 1000;
+    for (int j = 0; j < ns; j++) {
+        boxes2.add(std::make_shared<Sphere>(randomVec3(0,165), 10, white));
+    }
+
+    objects.add(std::make_shared<Translate>(
+            std::make_shared<RotateY>(
+                    std::make_shared<BVHNode>(boxes2, 0.0, 1.0), 15),
+            glm::vec3(-100,270,395)
+                )
+    );
     return objects;
 }
 
 int main() {
     const int picX = 600;
     const int picY = 600;
-    const int picS = 100;
+    const int picS = 1000;
     const int maxDepth = 50;
     const auto aspectRatio = float(picX) / float(picY);
     size_t t_start, t_stop, t_end;
@@ -174,7 +283,7 @@ int main() {
     glm::vec3 camOrigin, lookAt;
     float vfov = 40.0f;
     float distToFocus = 10.0f;
-    float aperture = 0.1f;
+    float aperture = 0.0f;
     switch (0)
     {
         case 1:
@@ -210,14 +319,26 @@ int main() {
             distToFocus = 1;
             aperture = 0;
             break;
-        default:
+
          case 5:
             world = cornellBox();
             backgroundTheme = 0;
             camOrigin = glm::vec3(278, 278, -800);
             lookAt = glm::vec3 (278, 278, 0);
-            distToFocus = 10.0f;
-            aperture = 0.0;
+            break;
+        case 6:
+            world = cornellSmoke();
+            backgroundTheme = 0;
+            camOrigin = glm::vec3(278, 278, -800);
+            lookAt = glm::vec3 (278, 278, 0);
+            break;
+        default:
+        case 7:
+            world = nextWeekendFinal();
+            backgroundTheme = 0;
+            camOrigin = glm::vec3(478, 278, -600);
+            lookAt = glm::vec3 (278, 278, 0);
+            break;
     }
     std::cout << "\t\t\t" << (t_stop - t_start) <<"ms\n";
     if (backgroundTheme < 0 || backgroundTheme > 1) {
